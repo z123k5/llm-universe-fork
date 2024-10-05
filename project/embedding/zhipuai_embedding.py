@@ -59,7 +59,7 @@ class ZhipuAIEmbeddings(BaseModel, Embeddings):
         # send request
         try:
             resp = self.client.invoke(
-                model="text_embedding",
+                model="embedding-3",
                 prompt=texts
             )
         except Exception as e:

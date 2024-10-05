@@ -37,4 +37,5 @@ websocket==0.2.1
 websocket-client==1.6.4
 websockets==11.0.3
 zhipuai==1.0.7
-
+pymongoose==1.3.8
+redis==5.1.0

@@ -26,7 +26,7 @@ class Chat_QA_chain_self:
     - embeddings：使用的embedding模型
     - embedding_key：使用的embedding模型的秘钥（智谱或者OpenAI）  
     """
-    def __init__(self,model:str, temperature:float=0.0, top_k:int=4, chat_history:list=[], file_path:str=None, persist_path:str=None, appid:str=None, api_key:str=None, Spark_api_secret:str=None,Wenxin_secret_key:str=None, embedding = "openai",embedding_key:str=None):
+    def __init__(self,model:str, temperature:float=0.0, top_k:int=4, chat_history:list=[], file_path:str=None, persist_path:str=None, appid:str=None, api_key:str=None, Spark_api_secret:str=None,Wenxin_secret_key:str=None, embedding = "openai",embedding_key:str=None, template=None):
         self.model = model
         self.temperature = temperature
         self.top_k = top_k
@@ -40,6 +40,7 @@ class Chat_QA_chain_self:
         self.Wenxin_secret_key = Wenxin_secret_key
         self.embedding = embedding
         self.embedding_key = embedding_key
+        self.template = template
 
 
         self.vectordb = get_vectordb(self.file_path, self.persist_path, self.embedding,self.embedding_key)
@@ -87,7 +88,8 @@ class Chat_QA_chain_self:
 
         qa = ConversationalRetrievalChain.from_llm(
             llm = llm,
-            retriever = retriever
+            retriever = retriever,
+            #kwargs={"prompt": self.template}
         )
 
         #print(self.llm)
