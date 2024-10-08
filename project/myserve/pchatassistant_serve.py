@@ -10,22 +10,25 @@
 @Desc    :   启动 ChatAssistant 服务
 '''
 
+
+
 import env
 import os
 import sys
+import random
 import uvicorn
 from datetime import datetime, timedelta
 from oauth2 import Token, OAuth2PasswordRequestForm, authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from oauth2 import get_current_user
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from chatService import chatpoll, ChatConfig
+from typing import List
 # 导入功能模块目录
 sys.path.append("../")
 from qa_chain.Chat_QA_chain_self import Chat_QA_chain_self
-
-os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
-os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
 
 app = FastAPI() # 创建 api 对象
 API_VER = os.getenv("API_VER", "v1") # 获取 API 版本
@@ -88,6 +91,9 @@ async def read_users_me(current_user = Depends(get_current_user)):
         _type_: _description_
     """
     return {"status": "active"}
+
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=3000)

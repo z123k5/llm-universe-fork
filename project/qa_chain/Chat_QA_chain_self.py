@@ -1,9 +1,12 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-from langchain.vectorstores import Chroma
+# from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from langchain.chat_models import ChatOpenAI
+# from langchain.chat_models import ChatOpenAI
+from langchain.prompts.chat import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+from langchain.chains.api.base import APIChain
+from langchain.chains import SequentialChain, LLMChain
 
 from qa_chain.model_to_llm import model_to_llm
 from qa_chain.get_vectordb import get_vectordb
@@ -26,7 +29,7 @@ class Chat_QA_chain_self:
     - embeddings：使用的embedding模型
     - embedding_key：使用的embedding模型的秘钥（智谱或者OpenAI）  
     """
-    def __init__(self,model:str, temperature:float=0.0, top_k:int=4, chat_history:list=[], file_path:str=None, persist_path:str=None, appid:str=None, api_key:str=None, Spark_api_secret:str=None,Wenxin_secret_key:str=None, embedding = "openai",embedding_key:str=None, template=None):
+    def __init__(self,model:str, temperature:float=0.0, top_k:int=4, chat_history:list=[], file_path:str=None, persist_path:str=None, appid:str=None, api_key:str=None, Spark_api_secret:str=None,Wenxin_secret_key:str=None, embedding = "openai",embedding_key:str=None, template=None, API_DOC=None):
         self.model = model
         self.temperature = temperature
         self.top_k = top_k
@@ -41,6 +44,7 @@ class Chat_QA_chain_self:
         self.embedding = embedding
         self.embedding_key = embedding_key
         self.template = template
+        self.API_DOC = API_DOC
 
 
         self.vectordb = get_vectordb(self.file_path, self.persist_path, self.embedding,self.embedding_key)
@@ -85,38 +89,68 @@ class Chat_QA_chain_self:
 
         retriever = self.vectordb.as_retriever(search_type="similarity",   
                                         search_kwargs={'k': top_k})  #默认similarity，k=4
+        
+        # APIChain
+        api_chain = APIChain.from_llm_and_api_docs(llm, 
+                verbose=True,       # Debug mode
+                question_key="question",
+                output_key="api_response",
+                api_docs=self.API_DOC,  # headers=headers,
+                limit_to_domains=["http://127.0.0.1:3000/"]
+                )
+        
+        result = api_chain({"question": question, "chat_history": self.chat_history})
 
-        qa = ConversationalRetrievalChain.from_llm(
+        
+#         prompt_template = """Given the response below, please summarize the transaction with id, type and date:
+
+# {api_response}"""
+
+
+#         prompt = PromptTemplate(
+#             input_variables=["api_response"], template=prompt_template)
+
+#         # Initialize LLMChain with custom prompt to generate response
+#         analysis_chain = LLMChain(llm=llm, prompt=prompt, output_key="summary")
+
+#         overall_chain = SequentialChain(
+#             chains=[api_chain, analysis_chain],
+#             input_variables=["question"],
+#             output_variables=["api_response", "summary"],
+#             verbose=True)
+        
+#         api_summary = overall_chain(
+#             {"question": question})
+        
+        # ConversationalRetrievalChain
+        messages = [
+            SystemMessagePromptTemplate.from_template(self.template),
+            HumanMessagePromptTemplate.from_template(question)
+        ]
+        qa_prompt = ChatPromptTemplate(input_variables=["api_response", "question", "chat_history", "context"],
+            messages=messages)
+        
+        conversational_chain = ConversationalRetrievalChain.from_llm(
             llm = llm,
             retriever = retriever,
             #kwargs={"prompt": self.template}
+            combine_docs_chain_kwargs={"prompt": qa_prompt}
         )
 
-        #print(self.llm)
-        result = qa({"question": question,"chat_history": self.chat_history})       #result里有question、chat_history、answer
+        overall_chain = SequentialChain(
+            chains=[api_chain, conversational_chain],
+            input_variables=["question", "chat_history"],
+            output_variables=["api_response", "answer"],
+            verbose=True)
+
+        # Run
+        result = overall_chain({
+            "context": " ",
+            "question": question,
+            "chat_history": self.chat_history})
+        
         answer =  result['answer']
+
         self.chat_history.append((question,answer)) #更新历史记录
 
         return self.chat_history  #返回本次回答和更新后的历史记录
-
-
-
-    
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

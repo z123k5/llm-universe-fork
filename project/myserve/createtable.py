@@ -77,6 +77,10 @@ service_desk_schema = {
     "id": {"type": "string", "required": True, "unique": True},
     "name": {"type": "string", "required": True},
     "description": {"type": "string", "required": True},
+    "apiDocuments": {
+        "path": {"type": "string", "required": True},
+        "lastUpdated": {"type": "date", "default": datetime.now}
+    },
     "apiEndpoints": [
         {
             "url": {"type": "string", "required": True},
@@ -100,7 +104,7 @@ if True:
         "email": "123456789@qq.com",
         "passwordHash": "1234567"
     }
-    user_collection.insert_one(user)
+    # user_collection.insert_one(user)
 
     # 插入聊天消息数据
     message = {
@@ -112,7 +116,7 @@ if True:
             "text": "Hello, World!"
         }
     }
-    message_collection.insert_one(message)
+    # message_collection.insert_one(message)
 
     # 插入机器人助理数据
     assistant = {
@@ -120,22 +124,25 @@ if True:
         "name": "餐馆服务员助理",
         "description": "一个虚拟的餐馆服务员",
         "corpus": {
-            "path": "/path/to/corpus"
+            "path": "/../../../data_base/data_base/vector_db/chroma"
         },
         "behaviorLibrary": {
-            "path": "/path/to/behaviorLibrary"
+            "path": "/../../../data_base/data_base/knowledge_db"
         },
         "promptEngineeringLibrary": {
-            "path": "/path/to/promptEngineeringLibrary"
+            "path": "/restaurant_assist/prompt_template.txt"
         }
     }
-    assistant_collection.insert_one(assistant)
+    # assistant_collection.insert_one(assistant)
 
     # 插入服务台数据
     service_desk = {
         "id": "4",
-        "name": "Restaurant Assistant",
-        "description": "A virtual restaurant assistant",
+        "name": "餐馆服务员助理",
+        "description": "一个虚拟的餐馆服务员",
+        "apiDocuments": {
+            "path": "/restaurant_assist/api_doc.txt",
+        },
         "apiEndpoints": [
             {
                 "url": "http://localhost:3000/api/v1/menu",

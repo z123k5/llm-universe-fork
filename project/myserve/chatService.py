@@ -1,7 +1,7 @@
 from itertools import chain
 import os, sys
 import redis
-from ConnectionPool import assistants_collection
+from ConnectionPool import assistants_collection, service_desk_collection
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import ConnectionFailure
 from pydantic import BaseModel
@@ -45,25 +45,32 @@ class Item(BaseModel):
 
 class ChatConfig(Item):
     appname : str = None
+    API_DOC : str = None
 
 class ChatPool:
     def openchat(self, username: str, config: ChatConfig):
         if chainpoll.get(username+'-'+config.appname):
             return True
         assistant = assistants_collection.find_one({"name": config.appname})
+        service_desk = service_desk_collection.find_one({"name": config.appname})
         if not assistant :
             return False
         
         prompt_template = None
+        api_doc = None
         # Read prompt template from file
         with open(os.getenv('RES_DIR') + assistant.get("promptEngineeringLibrary").get("path"), 'r', encoding='utf-8') as f:
             prompt_template = f.read()
+
+        with open(os.getenv('RES_DIR') + service_desk.get("apiDocuments").get("path"), 'r', encoding='utf-8') as f:
+            api_doc = f.read()
         
         config.file_path = os.getenv('RES_DIR')+assistant.get("corpus").get("path")
         config.db_path = os.getenv('RES_DIR')+assistant.get("behaviorLibrary").get("path")
         config.prompt_template = prompt_template
+        config.API_DOC = api_doc
         
-        chain = Chat_QA_chain_self(model=config.model, temperature=config.temperature, file_path=config.file_path, persist_path=config.db_path, appid=config.appid, api_key=config.api_key, Spark_api_secret=config.Spark_api_secret, Wenxin_secret_key=config.Wenxin_secret_key, embedding=config.embedding, embedding_key=config.embedding_key, template=config.prompt_template)
+        chain = Chat_QA_chain_self(model=config.model, temperature=config.temperature, file_path=config.file_path, persist_path=config.db_path, appid=config.appid, api_key=config.api_key, Spark_api_secret=config.Spark_api_secret, Wenxin_secret_key=config.Wenxin_secret_key, embedding=config.embedding, embedding_key=config.embedding_key, template=config.prompt_template, API_DOC=config.API_DOC)
         chainpoll[username+'-'+config.appname] = chain
         return True
     

@@ -35,3 +35,4 @@ db = client.assistant_proj if client else None
 
 assistants_collection = db.assistants
 users_collection = db.users
+service_desk_collection = db.service_desks
