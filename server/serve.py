@@ -119,6 +119,10 @@ msg | string (订单结果描述)
         
     order.append({"userId": userId, "orderId": random.randint(1000, 3000), "orderNum": len(dishId), "sitNum": sitNum, "status": "true", "dishes": [dishId[i] for i in range(len(dishId))]})
 
+    # 订单超过10个，删除第一个
+    if len(order) > 10:
+        order.pop(0)
+
 
     return JSONResponse(jsonable_encoder({"status": "true", "msg": "提交订单成功", "orderId": order[-1]["orderId"]}))
 
