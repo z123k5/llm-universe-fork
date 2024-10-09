@@ -1,3 +1,4 @@
+cd /home/git/assistant_server.git/
 cd server
 nohup python serve.py &
 cd ../project/myserve
