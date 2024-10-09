@@ -6,7 +6,7 @@ from datetime import datetime
 # 连接到 MongoDB
 def connect_to_database():
     try:
-        client = MongoClient('mongodb://root:123456jqk*@localhost:27017/assistant_proj', 
+        client = MongoClient('mongodb://root:123456jqk*@ec2-18-162-191-221.ap-east-1.compute.amazonaws.com:27017/assistant_proj',
                              serverSelectionTimeoutMS=30000, 
                              socketTimeoutMS=45000)
         client.admin.command('ping')
