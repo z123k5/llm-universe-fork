@@ -84,7 +84,7 @@ class ChatPool:
     def chat_text(self, username, appname, prompt):
         chain = chainpoll.get(username+'-'+appname)
         if not chain:
-            raise ValueError("Chat chain is not open")
+            return "Chat 链未开启"
         response = chain.answer(question = prompt)
         return response
     
