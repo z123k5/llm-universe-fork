@@ -74,6 +74,13 @@ class ChatPool:
         chainpoll[username+'-'+config.appname] = chain
         return True
     
+    def close_chat(self, username, appname):
+        chain = chainpoll.get(username+'-'+appname)
+        if not chain:
+            return False
+        chainpoll.pop(username+'-'+appname)
+        return True
+    
     def chat_text(self, username, appname, prompt):
         chain = chainpoll.get(username+'-'+appname)
         if not chain:

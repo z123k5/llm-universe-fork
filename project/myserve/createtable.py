@@ -6,7 +6,7 @@ from datetime import datetime
 # 连接到 MongoDB
 def connect_to_database():
     try:
-        client = MongoClient('mongodb://root:123456jqk*@ec2-18-163-6-33.ap-east-1.compute.amazonaws.com:27017/assistant_proj', 
+        client = MongoClient('mongodb://root:123456jqk*@localhost:27017/assistant_proj', 
                              serverSelectionTimeoutMS=30000, 
                              socketTimeoutMS=45000)
         client.admin.command('ping')
@@ -104,7 +104,7 @@ if True:
         "email": "123456789@qq.com",
         "passwordHash": "1234567"
     }
-    # user_collection.insert_one(user)
+    user_collection.insert_one(user)
 
     # 插入聊天消息数据
     message = {
@@ -116,7 +116,7 @@ if True:
             "text": "Hello, World!"
         }
     }
-    # message_collection.insert_one(message)
+    message_collection.insert_one(message)
 
     # 插入机器人助理数据
     assistant = {
@@ -133,7 +133,7 @@ if True:
             "path": "/restaurant_assist/prompt_template.txt"
         }
     }
-    # assistant_collection.insert_one(assistant)
+    assistant_collection.insert_one(assistant)
 
     # 插入服务台数据
     service_desk = {

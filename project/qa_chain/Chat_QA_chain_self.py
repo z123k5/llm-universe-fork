@@ -1,13 +1,12 @@
-from langchain.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
 # from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
 # from langchain.chat_models import ChatOpenAI
+from langchain.chains.conversational_retrieval.base import _get_chat_history
 from langchain.prompts.chat import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-from langchain.chains.api.base import APIChain
 from langchain.chains import SequentialChain, LLMChain
+from langchain.prompts.prompt import PromptTemplate
 
+from qa_chain.MyAPIChain.MyAPIChain import MyAPIChain
 from qa_chain.model_to_llm import model_to_llm
 from qa_chain.get_vectordb import get_vectordb
 
@@ -67,7 +66,7 @@ class Chat_QA_chain_self:
         return self.chat_history[n-history_len:]
 
  
-    def answer(self, question:str=None,temperature = None, top_k = 4):
+    def answer(self, question:str=None,temperature = None, top_k = 4, **kwargs):
         """"
         核心方法，调用问答链
         arguments: 
@@ -85,51 +84,45 @@ class Chat_QA_chain_self:
 
         llm = model_to_llm(self.model, temperature, self.appid, self.api_key, self.Spark_api_secret,self.Wenxin_secret_key)
 
+        # 阅读理解链
+        deepkTemplateStr = """Given the chat history below, please answer the question in short as possible:
+** Chat history:
+{chat_history}
+
+** User Question:
+{question}
+
+** What is the purpose of the user now?
+Your Answer:
+"""
+        deepkTemplate = PromptTemplate(template=deepkTemplateStr, input_variables=[
+                "chat_history", "question"])
+        deepkTemplate.partial(chat_history=_get_chat_history(self.chat_history), question=question)
+        deepkChain = LLMChain(llm=llm, prompt=deepkTemplate,
+                              output_key="question_nested")
+
         #self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-        retriever = self.vectordb.as_retriever(search_type="similarity",   
-                                        search_kwargs={'k': top_k})  #默认similarity，k=4
         
         # APIChain
-        api_chain = APIChain.from_llm_and_api_docs(llm, 
+        api_chain = MyAPIChain.from_llm_and_api_docs(llm,
                 verbose=True,       # Debug mode
-                question_key="question",
+                question_key="question_nested",
                 output_key="api_response",
                 api_docs=self.API_DOC,  # headers=headers,
-                limit_to_domains=["http://127.0.0.1:3000/"]
+                userId=kwargs.get("userId", 253),
+                limit_to_domains=["http://127.0.0.1:3000/"],
                 )
         
-        result = api_chain({"question": question, "chat_history": self.chat_history})
-
-        
-#         prompt_template = """Given the response below, please summarize the transaction with id, type and date:
-
-# {api_response}"""
-
-
-#         prompt = PromptTemplate(
-#             input_variables=["api_response"], template=prompt_template)
-
-#         # Initialize LLMChain with custom prompt to generate response
-#         analysis_chain = LLMChain(llm=llm, prompt=prompt, output_key="summary")
-
-#         overall_chain = SequentialChain(
-#             chains=[api_chain, analysis_chain],
-#             input_variables=["question"],
-#             output_variables=["api_response", "summary"],
-#             verbose=True)
-        
-#         api_summary = overall_chain(
-#             {"question": question})
-        
         # ConversationalRetrievalChain
+        retriever = self.vectordb.as_retriever(search_type="similarity",
+                                            search_kwargs={'k': top_k})  # 默认similarity，k=4
         messages = [
             SystemMessagePromptTemplate.from_template(self.template),
             HumanMessagePromptTemplate.from_template(question)
         ]
         qa_prompt = ChatPromptTemplate(input_variables=["api_response", "question", "chat_history", "context"],
             messages=messages)
-        
         conversational_chain = ConversationalRetrievalChain.from_llm(
             llm = llm,
             retriever = retriever,
@@ -137,8 +130,9 @@ class Chat_QA_chain_self:
             combine_docs_chain_kwargs={"prompt": qa_prompt}
         )
 
+        # 阅读理解链、API链、对话链
         overall_chain = SequentialChain(
-            chains=[api_chain, conversational_chain],
+            chains=[deepkChain, api_chain, conversational_chain],
             input_variables=["question", "chat_history"],
             output_variables=["api_response", "answer"],
             verbose=True)

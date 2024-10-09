@@ -155,3 +155,6 @@ yarl==1.9.2
 zhipuai==1.0.7
 zipp==3.11.0
 zstandard==0.22.0
+pymongoose==1.3.8
+redis==5.1.0
+python-jose==3.3.0

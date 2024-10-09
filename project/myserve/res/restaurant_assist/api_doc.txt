@@ -3,41 +3,44 @@ API 文档:
 
 1. 查询菜单，需要查看本店的所有菜品时调用
 (GET) http://127.0.0.1:8081/api/v1/menu
-查询参数表:
+** 查询参数表:
 None
-返回值 (JSON object):
+** 返回值 (JSON object):
 dishes | array[dish] (菜品对象)
-
-在 dish 对象中包含下列值
+** 在 dishes 的每个元素中包含下列值
 dishId | string (菜品编号)
 name | string (菜品名称)
 price | string (价格)
 info | string (描述)
 avatar | string (图像路径)
 
-2. 发起订单
-(POST) http://127.0.0.1:8081/api/v1/appendOrder
-查询参数表:
-dishId | array[string] (菜品编号数组，这个参数来自于之前请求1.的查询菜单的dishId结果) | 必须
-name | array[string] (菜品名称数组) | 必须
-返回值 (JSON object):
-status | "true" 如果成功 "false" 如果失败
-msg | string (订单结果描述)
-
-3. 查询空闲座位数量
+2. 查询空闲座位数量
 (GET) http://127.0.0.1:8081/api/v1/querySit
-查询参数表:
+** 查询参数表:
 None
-返回值 (JSON object):
+** 返回值 (JSON object):
 num | string (空闲座位数量)
 msg | string (结果描述)
 
-4. 支付方式
-(GET) http://127.0.0.1:8081/api/payQRCode
-查询参数表
-userId | 
-username |
-返回值 (string)
-imageUrl | string | 必须
+3. 发起订单
+(POST) http://127.0.0.1:8081/api/v1/appendOrder
+** 查询参数表:
+userId | int (用户编号) | 必须
+dishId | array[string] (不是菜品名称，是菜品的编号)数组 | 必须
+sitNum | int (订座位数量，正整数) | 可选（大于0为堂食，不填时为线上订餐）
+** 返回值 (JSON object):
+status | "true" 如果成功 "false" 如果失败
+msg | string (订单结果描述)
+orderId | string(订单编号) (特别注意记录这个用户编号对应的订单编号，有利于你发起支付订单时使用)
+
+
+4. 结账、完成订单、微信、支付宝、扫码支付方式
+(GET) http://127.0.0.1:8081/api/v1/payOrder
+** 查询参数表
+userId | 用户编号
+orderId | 订单编号
+** 返回值 (string)
+status | "true" 如果成功 "false" 如果失败
+imgUrl | string | 必须
 msg | string (订单描述)
 

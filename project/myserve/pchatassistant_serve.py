@@ -21,23 +21,12 @@ from datetime import datetime, timedelta
 from oauth2 import Token, OAuth2PasswordRequestForm, authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from oauth2 import get_current_user
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
 from chatService import chatpoll, ChatConfig
-from typing import List
 # 导入功能模块目录
 sys.path.append("../")
-from qa_chain.Chat_QA_chain_self import Chat_QA_chain_self
 
 app = FastAPI() # 创建 api 对象
 API_VER = os.getenv("API_VER", "v1") # 获取 API 版本
-
-template = """使用以下上下文来回答最后的问题。如果你不知道答案，就说你不知道，不要试图编造答
-案。最多使用三句话。尽量使答案简明扼要。总是在回答的最后说“谢谢你的提问！”。
-{context}
-问题: {question}
-有用的回答:"""
 
 
 @app.post(f"/api/{API_VER}/open_chat")
@@ -45,11 +34,25 @@ async def open_chat(conf: ChatConfig, user: str = Depends(get_current_user)):
     # 调用 Chat 链
     if chatpoll.openchat(user, conf):
         return "Chat 链已经开启"
+    
+@app.post(f"/api/{API_VER}/close_chat")
+async def close_chat(appname: str, user: str = Depends(get_current_user)):
+    # 关闭 Chat 链
+    if chatpoll.close_chat(user, appname):
+        return "Chat 链已经关闭"
+    
+@app.post(f"/api/{API_VER}/clear_history")
+async def clear_history(user: str = Depends(get_current_user)):
+    # 清空历史记录
+    return chatpoll.clear_history(user)
 
 @app.post(f"/api/{API_VER}/chat_text")
 async def get_response(prompt: str, appname: str, user: str = Depends(get_current_user)):   
     return {"response": chatpoll.chat_text(user, appname, prompt) }
 
+@app.post(f"/api/{API_VER}/chat_audio")
+async def get_response(audio: str, appname: str, user: str = Depends(get_current_user)):
+    return {"response": chatpoll.chat_audio(user, appname, audio) }
 
 
 @app.post(f"/api/{API_VER}/token", response_model=Token)

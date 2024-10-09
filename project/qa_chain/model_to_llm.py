@@ -14,7 +14,7 @@ def model_to_llm(model:str=None, temperature:float=0.0, appid:str=None, api_key:
         智谱：model,temperature,api_key
         OpenAI：model,temperature,api_key
         """
-        if model in ["gpt-3.5-turbo", "gpt-3.5-turbo-16k-0613", "gpt-3.5-turbo-0613", "gpt-4", "gpt-4-32k"]:
+        if model in ["gpt-3.5-turbo", "gpt-3.5-turbo-16k-0613", "gpt-3.5-turbo-0613", "gpt-4", "gpt-4-32k", "gpt-4o", "gpt-4-turbo-2024-04-09"]:
             if api_key == None:
                 api_key = parse_llm_api_key("openai")
             llm = ChatOpenAI(model_name = model, temperature = temperature , openai_api_key = api_key)
