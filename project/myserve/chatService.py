@@ -78,6 +78,7 @@ class ChatPool:
         chain = chainpoll.get(username+'-'+appname)
         if not chain:
             return False
+        chain.clear_history()
         chainpoll.pop(username+'-'+appname)
         return True
     
