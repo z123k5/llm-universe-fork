@@ -32,8 +32,8 @@ API_VER = os.getenv("API_VER", "v1") # 获取 API 版本
 # CORS 设定只允许localhost访问
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
