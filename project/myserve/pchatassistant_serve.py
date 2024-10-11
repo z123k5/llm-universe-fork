@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from oauth2 import Token, OAuth2PasswordRequestForm, authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from oauth2 import get_current_user
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from chatService import chatpoll, ChatConfig
 # 导入功能模块目录
 sys.path.append("../")
@@ -28,18 +29,31 @@ sys.path.append("../")
 app = FastAPI() # 创建 api 对象
 API_VER = os.getenv("API_VER", "v1") # 获取 API 版本
 
+# CORS 设定只允许localhost访问
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post(f"/api/{API_VER}/open_chat")
 async def open_chat(conf: ChatConfig, user: str = Depends(get_current_user)):
     # 调用 Chat 链
     if chatpoll.openchat(user, conf):
         return "Chat 链已经开启"
+    else:
+        return "找不到 app"
     
 @app.post(f"/api/{API_VER}/close_chat")
 async def close_chat(appname: str, user: str = Depends(get_current_user)):
     # 关闭 Chat 链
     if chatpoll.close_chat(user, appname):
         return "Chat 链已经关闭"
+    else:
+        return "未找到 Chat链"
     
 @app.post(f"/api/{API_VER}/clear_history")
 async def clear_history(user: str = Depends(get_current_user)):
