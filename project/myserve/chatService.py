@@ -137,7 +137,7 @@ class ChatPool:
             return False
         
         # Save chat history to database
-        self.save_history(username, appname, chain.chat_history, chain.chat_last_index)
+        self.save_history(username, appname, chain.chat_history, chain.chat_start_index)
 
         chain.clear_history()
         chainpoll.pop(username+'-'+appname)
