@@ -1,0 +1,31 @@
+1. postman获取登录认证token，用于后续接口调用
+POST http://ec2-18-162-191-221.ap-east-1.compute.amazonaws.com:3001/api/v1/token
+在Authorization中Type选OAuth 2.0，Access Token URL填上面这一行，ClientID随便填一个单词，Client Secret随便填一个单词，Username和Password填下面两个，然后点Get New Access token
+用户名:user
+密码:123456
+数据：没有额外数据
+
+
+2. 打开一个会话
+POST http://ec2-18-162-191-221.ap-east-1.compute.amazonaws.com:3001/api/v1/open_chat
+postman在Authorization中Type选OAuth 2.0，Current Token选刚才获取的Token
+数据：Body选择raw，右边选择Json，填入：
+{
+    "model":"gpt-4-turbo-2024-04-09",
+    "api_key":"sk-q5BPovxzZqSdiCN86029880a492b4e579dB4F66e8dC503Af",
+    "embedding":"openai",
+    "embedding_key":"sk-q5BPovxzZqSdiCN86029880a492b4e579dB4F66e8dC503Af",
+    "appname":"餐馆服务员助理"
+}
+
+3. 关闭一个会话（像刚才那样选择token）
+http://ec2-18-162-191-221.ap-east-1.compute.amazonaws.com:3001/api/v1/close_chat
+
+
+4. 发送文字信息（像刚才那样选择token）
+http://ec2-18-162-191-221.ap-east-1.compute.amazonaws.com:3001/api/v1/chat_text
+数据：在Params中：
+1. appname 餐馆服务员助理
+2. prompt  发送的文字
+
+

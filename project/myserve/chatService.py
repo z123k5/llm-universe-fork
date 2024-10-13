@@ -1,7 +1,10 @@
+import hashlib
 from itertools import chain
 import os, sys
+from bson import ObjectId
 import redis
-from ConnectionPool import assistants_collection, service_desk_collection
+import uuid
+from ConnectionPool import assistants_collection, service_desk_collection, messages_collection
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import ConnectionFailure
 from pydantic import BaseModel
@@ -48,6 +51,48 @@ class ChatConfig(Item):
     API_DOC : str = None
 
 class ChatPool:
+    def get_objid(self, string):
+        hash_object = hashlib.sha256(string.encode())
+        hash_hex = hash_object.hexdigest()
+        return ObjectId(hash_hex[:24])
+    def save_history(self, username, appname, history, last_index):
+        """Format
+        [
+            [
+            "User dialogue",
+            "Assistant dialogue",
+            ],
+            [
+            "User dialogue",
+            "Assistant dialogue",
+            ],
+            ...
+        ]
+        """
+        schema = []
+        chat_id = self.get_objid(username+'-'+appname)
+        sender_id = self.get_objid(username)
+        receiver_id = self.get_objid(appname)
+        for i in range(last_index/2, len(history)):
+            schema.append(
+                {
+                    "chatId": chat_id,
+                    "senderId": sender_id,
+                    "receiverId": receiver_id,
+                    "messageType": "text", 
+                    "messageContent": {"text": history[i][0]}
+                })
+            schema.append(
+                {
+                    "chatId": chat_id,
+                    "senderId": receiver_id,
+                    "receiverId": sender_id,
+                    "messageType": "text", 
+                    "messageContent": {"text": history[i][1]}
+                })
+        messages_collection.insert_many(schema)
+
+
     def openchat(self, username: str, config: ChatConfig):
         if chainpoll.get(username+'-'+config.appname):
             return True
@@ -69,15 +114,30 @@ class ChatPool:
         config.db_path = os.getenv('RES_DIR')+assistant.get("behaviorLibrary").get("path")
         config.prompt_template = prompt_template
         config.API_DOC = api_doc
+
+        # Get history data
+        schema = messages_collection.find({"chatId": self.get_objid(username+'-'+config.appname)})
+        history = []
+        # Use schema.iter to retrieve data
+        for i in range(0, schema.retrieved(), 2):
+            history.append([schema[i].get("messageContent").get("text"), schema[i+1].get("messageContent").get("text")])
+
         
         chain = Chat_QA_chain_self(model=config.model, temperature=config.temperature, file_path=config.file_path, persist_path=config.db_path, appid=config.appid, api_key=config.api_key, Spark_api_secret=config.Spark_api_secret, Wenxin_secret_key=config.Wenxin_secret_key, embedding=config.embedding, embedding_key=config.embedding_key, template=config.prompt_template, API_DOC=config.API_DOC)
+
+        chain.chat_start_index = schema.retrieved()
+
         chainpoll[username+'-'+config.appname] = chain
-        return True
+        return history
     
     def close_chat(self, username, appname):
         chain = chainpoll.get(username+'-'+appname)
         if not chain:
             return False
+        
+        # Save chat history to database
+        self.save_history(username, appname, chain.chat_history, chain.chat_last_index)
+
         chain.clear_history()
         chainpoll.pop(username+'-'+appname)
         return True

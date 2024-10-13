@@ -1,4 +1,5 @@
 # from langchain.vectorstores import Chroma
+from bson import ObjectId
 from langchain.chains import ConversationalRetrievalChain
 # from langchain.chat_models import ChatOpenAI
 from langchain.chains.conversational_retrieval.base import _get_chat_history
@@ -44,6 +45,7 @@ class Chat_QA_chain_self:
         self.embedding_key = embedding_key
         self.template = template
         self.API_DOC = API_DOC
+        self.chat_start_index: int = None
 
 
         self.vectordb = get_vectordb(self.file_path, self.persist_path, self.embedding,self.embedding_key)
@@ -84,7 +86,7 @@ class Chat_QA_chain_self:
 
         llm = model_to_llm(self.model, temperature, self.appid, self.api_key, self.Spark_api_secret,self.Wenxin_secret_key)
 
-        # 阅读理解链
+        # 深度理解链
         deepkTemplateStr = """Given the chat history below, please answer the question in short as possible:
 ** Chat history:
 {chat_history}

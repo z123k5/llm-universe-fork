@@ -37,7 +37,7 @@ dish = [
 # {userId, orderId, sitNum, status, [dishId1, dishId2, ...]}}
 order = []
 
-@app.api_route("/api/v1/menu", methods=["GET", "POST"])
+@app.api_route("/api/v1/menu", methods=["GET", "POST", "OPTIONS"])
 async def read_menu_price():
     """Route to get menu price
 
@@ -59,7 +59,7 @@ avatar | string (图像路径)
     return JSONResponse(jsonable_encoder(dish))
 
 
-@app.api_route("/api/v1/querySit", methods=["GET", "POST"])
+@app.api_route("/api/v1/querySit", methods=["GET", "POST", "OPTIONS"])
 async def query_sit():
     """Route to query sit
 
@@ -73,7 +73,8 @@ msg | string (结果描述)
     """
     return JSONResponse(jsonable_encoder({"num": random.randint(1, 10), "msg": "获取座位数量成功"}))
 
-@app.api_route("/api/v1/appendOrder", methods=["GET", "POST"])
+
+@app.api_route("/api/v1/appendOrder", methods=["GET", "POST", "OPTIONS"])
 async def append_order(request: Request):
     """Route to append order
 
@@ -127,7 +128,7 @@ msg | string (订单结果描述)
     return JSONResponse(jsonable_encoder({"status": "true", "msg": "提交订单成功", "orderId": order[-1]["orderId"]}))
 
 
-@app.api_route("/api/v1/payOrder", methods=["GET", "POST"])
+@app.api_route("/api/v1/payOrder", methods=["GET", "POST", "OPTIONS"])
 async def pay_order(request: Request):
     """Route to pay order
 

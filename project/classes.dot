@@ -1,0 +1,5 @@
+digraph "classes" {
+rankdir=BT
+charset="utf-8"
+"Chat_QA_chain_self.Chat_QA_chain_self" [color="black", fontcolor="black", label=<{Chat_QA_chain_self|API_DOC : NoneType<br ALIGN="LEFT"/>Spark_api_secret : Optional[str]<br ALIGN="LEFT"/>Wenxin_secret_key : Optional[str]<br ALIGN="LEFT"/>api_key : Optional[str]<br ALIGN="LEFT"/>appid : Optional[str]<br ALIGN="LEFT"/>chat_history : list<br ALIGN="LEFT"/>embedding : str<br ALIGN="LEFT"/>embedding_key : Optional[str]<br ALIGN="LEFT"/>file_path : Optional[str]<br ALIGN="LEFT"/>model : str<br ALIGN="LEFT"/>persist_path : Optional[str]<br ALIGN="LEFT"/>temperature : float<br ALIGN="LEFT"/>template : NoneType<br ALIGN="LEFT"/>top_k : int<br ALIGN="LEFT"/>vectordb<br ALIGN="LEFT"/>|answer(question: str, temperature, top_k)<br ALIGN="LEFT"/>change_history_length(history_len: int)<br ALIGN="LEFT"/>clear_history()<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+}

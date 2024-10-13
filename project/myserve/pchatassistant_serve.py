@@ -42,8 +42,9 @@ app.add_middleware(
 @app.post(f"/api/{API_VER}/open_chat")
 async def open_chat(conf: ChatConfig, user: str = Depends(get_current_user)):
     # 调用 Chat 链
-    if chatpoll.openchat(user, conf):
-        return "Chat 链已经开启"
+    hist = chatpoll.openchat(user, conf);
+    if isinstance(hist, list):
+        return hist
     else:
         return "找不到 app"
     
