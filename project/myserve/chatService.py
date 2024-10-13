@@ -90,7 +90,8 @@ class ChatPool:
                     "messageType": "text", 
                     "messageContent": {"text": history[i][1]}
                 })
-        messages_collection.insert_many(schema)
+        if schema:
+            messages_collection.insert_many(schema)
 
 
     def openchat(self, username: str, config: ChatConfig):
