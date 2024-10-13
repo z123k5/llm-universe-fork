@@ -57,7 +57,7 @@ async def close_chat(appname: str, user: str = Depends(get_current_user)):
         return "未找到 Chat链"
     
 @app.post(f"/api/{API_VER}/clear_history")
-async def clear_history(user: str = Depends(get_current_user)):
+async def clear_history(appname: str, user: str = Depends(get_current_user)):
     # 清空历史记录
     return chatpoll.clear_history(user)
 
