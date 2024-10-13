@@ -73,7 +73,7 @@ class ChatPool:
         chat_id = self.get_objid(username+'-'+appname)
         sender_id = self.get_objid(username)
         receiver_id = self.get_objid(appname)
-        for i in range(last_index/2, len(history)):
+        for i in range((last_index/2), len(history)):
             schema.append(
                 {
                     "chatId": chat_id,
