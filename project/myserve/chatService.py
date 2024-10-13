@@ -117,18 +117,19 @@ class ChatPool:
 
         # Get history data
         schema = messages_collection.find({"chatId": self.get_objid(username+'-'+config.appname)})
-        history = []
-        # Use schema.iter to retrieve data
-        for i in range(0, schema.retrieved, 2):
-            history.append([schema[i].get("messageContent").get("text"), schema[i+1].get("messageContent").get("text")])
 
         
         chain = Chat_QA_chain_self(model=config.model, temperature=config.temperature, file_path=config.file_path, persist_path=config.db_path, appid=config.appid, api_key=config.api_key, Spark_api_secret=config.Spark_api_secret, Wenxin_secret_key=config.Wenxin_secret_key, embedding=config.embedding, embedding_key=config.embedding_key, template=config.prompt_template, API_DOC=config.API_DOC)
 
+        chain.history = []
+        # Use schema.iter to retrieve data
+        for i in range(0, schema.retrieved, 2):
+            chain.history.append([schema[i].get("messageContent").get("text"), schema[i+1].get("messageContent").get("text")])
+
         chain.chat_start_index = schema.retrieved
 
         chainpoll[username+'-'+config.appname] = chain
-        return history
+        return chain.history
     
     def close_chat(self, username, appname):
         chain = chainpoll.get(username+'-'+appname)

@@ -43,7 +43,7 @@ app.add_middleware(
 async def open_chat(conf: ChatConfig, user: str = Depends(get_current_user)):
     # 调用 Chat 链
     hist = chatpoll.openchat(user, conf);
-    if isinstance(hist, list):
+    if isinstance(hist, list) or hist == True:
         return hist
     else:
         return "找不到 app"
