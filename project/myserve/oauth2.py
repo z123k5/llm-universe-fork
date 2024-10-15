@@ -12,7 +12,7 @@ from jose import JWTError, jwt
 # 生成密钥
 SECRET_KEY = "your_secret_key1"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 HASH_SALT = "your_hash_salt"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -68,7 +68,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         r.expire(data.get("sub"), int(expires_delta.total_seconds()))
     else:
         expire = datetime.now() + timedelta(minutes=15)
-        r.expire(data.get("sub"), 60*15)
+        r.expire(data.get("sub"), 60*60)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

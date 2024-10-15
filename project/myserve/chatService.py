@@ -1,6 +1,8 @@
 import hashlib
 from itertools import chain
 import os, sys
+
+import requests
 from bson import ObjectId
 import redis
 import uuid
@@ -55,6 +57,19 @@ class ChatPool:
         hash_object = hashlib.sha256(string.encode())
         hash_hex = hash_object.hexdigest()
         return ObjectId(hash_hex[:24])
+
+    def get_objid_int8(self, string):
+        hash_object = hashlib.sha256(string.encode())
+        hash_hex = hash_object.hexdigest()
+        # range from 0 to 1024
+        return int(hash_hex[:2], base=16)
+    
+    def clear_history(self, username, appname=None):
+        # Clear all chat history
+        messages_collection.delete_many({"senderId": self.get_objid(username), "receiverId": self.get_objid(appname)})
+        messages_collection.delete_many({"senderId": self.get_objid(appname), "receiverId": self.get_objid(username)})
+        return True
+
     def save_history(self, username, appname, history, last_index):
         """Format
         [
@@ -135,7 +150,7 @@ class ChatPool:
     def close_chat(self, username, appname):
         chain = chainpoll.get(username+'-'+appname)
         if not chain:
-            return False
+            raise RuntimeError("Chat 链未开启")
         
         # Save chat history to database
         self.save_history(username, appname, chain.chat_history, chain.chat_start_index)
@@ -147,19 +162,43 @@ class ChatPool:
     def chat_text(self, username, appname, prompt):
         chain = chainpoll.get(username+'-'+appname)
         if not chain:
-            return "Chat 链未开启"
-        response = chain.answer(question = prompt)
+            raise RuntimeError("Chat 链未开启")
+        response = chain.answer(
+            question=prompt, userId=self.get_objid_int8(username))
         return response
     
     # Experimental
     def chat_audio(self, username, appname, audio):
         chain = chainpoll.get(username+'-'+appname)
         if not chain:
-            raise ValueError("Chat chain is not open")
-        response = chain.answer(question = audio)
+            raise RuntimeError("Chat 链未开启")
+        audio_text = ""
+        # Convert audio to text
+        # TODO: Add audio to text conversion
+        response = chain.answer(question=audio_text,
+                                userId=self.get_objid_int8(username))
         return response
     
     def get_history(self, username, appname):
         return chainpoll.get(username+'-'+appname).chat_history
+    
+    def get_desk_form(self, username, appname):
+        # Request from service desk by http request
+        service_desk_form_apis = service_desk_collection.find_one({"name": appname}).get("apiEndpoints")
+        service_desk_form_api = ""
+        for endpoint in service_desk_form_apis:
+            print(endpoint)
+            if endpoint.get("method") == "GET" and endpoint.get("url").endswith("get_desk_form"):
+                service_desk_form_api = endpoint.get("url")
+                print(service_desk_form_api)
+                break
+
+        if service_desk_form_api == "":
+            raise RuntimeError("Service Desk Form API not found")
+        try:
+            response = requests.get(service_desk_form_api, params={"userId": self.get_objid_int8(username)})
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError("Service Desk API request failed: {}".format(e))        
 
 chatpoll = ChatPool()

@@ -12,6 +12,8 @@
 
 
 
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 import env
 import os
 import sys
@@ -59,15 +61,31 @@ async def close_chat(appname: str, user: str = Depends(get_current_user)):
 @app.post(f"/api/{API_VER}/clear_history")
 async def clear_history(appname: str, user: str = Depends(get_current_user)):
     # 清空历史记录
-    return chatpoll.clear_history(user)
+    return chatpoll.clear_history(user, appname)
 
 @app.post(f"/api/{API_VER}/chat_text")
-async def get_response(prompt: str, appname: str, user: str = Depends(get_current_user)):   
-    return {"response": chatpoll.chat_text(user, appname, prompt) }
+async def get_response(prompt: str, appname: str, user: str = Depends(get_current_user)):
+    try:
+        rensponce = chatpoll.chat_text(user, appname, prompt)
+        return {"response": rensponce }
+    except Exception as e:
+        return  JSONResponse(content={"response": str(e) }, status_code=500, media_type="application/json")
 
 @app.post(f"/api/{API_VER}/chat_audio")
 async def get_response(audio: str, appname: str, user: str = Depends(get_current_user)):
-    return {"response": chatpoll.chat_audio(user, appname, audio) }
+    try:
+        rensponce = chatpoll.chat_audio(user, appname, audio)
+        return {"response": rensponce}
+    except Exception as e:
+        return JSONResponse(content={"response": str(e)}, status_code=500, media_type="application/json")
+
+@app.post(f"/api/{API_VER}/get_desk_form")
+async def get_response(appname: str, user: str = Depends(get_current_user)):
+    try:
+        response = chatpoll.get_desk_form(user, appname)
+        return {"response": response }
+    except Exception as e:
+        return JSONResponse(content={"response": str(e)}, status_code=500, media_type="application/json")
 
 
 @app.post(f"/api/{API_VER}/token", response_model=Token)
@@ -110,6 +128,18 @@ async def read_users_me(current_user = Depends(get_current_user)):
     """
     return {"status": "active"}
 
+
+@app.post(f"/api/{API_VER}/users/log_out")
+async def log_out(current_user = Depends(get_current_user)):
+    """Route to log out
+
+    Args:
+        current_user (_type_, optional): _description_. Defaults to Depends(get_current_user).
+
+    Returns:
+        _type_: _description_
+    """
+    return {"status": "logged out"}
 
 
 
