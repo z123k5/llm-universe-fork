@@ -70,7 +70,7 @@ async def read_root():
     Returns:
         _type_: _description_
     """
-    return "The Rat Tap Your Head!"
+    return "The Rat Tap Your Head! You are lost!"
 
 @app.api_route("/api/v1/querySit", methods=["GET", "POST", "OPTIONS"])
 async def query_sit():
