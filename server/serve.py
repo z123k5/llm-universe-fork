@@ -63,7 +63,7 @@ avatar | string (图像路径)
 """
     return JSONResponse(jsonable_encoder(dish))
 
-@app.route_route("/", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/", methods=["GET", "POST", "OPTIONS"])
 async def read_root():
     """Route to get root
 
