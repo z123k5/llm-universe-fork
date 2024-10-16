@@ -138,7 +138,7 @@ async def register_user():
     Returns:
         _type_: _description_
     """
-    return {"status": "registered"}
+    return {"status": "UnSupported"}
 
 @app.post(f"/api/{API_VER}/users/log_out")
 async def log_out(current_user = Depends(get_current_user)):
