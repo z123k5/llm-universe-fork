@@ -108,3 +108,35 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return token_data.username
 
 
+async def put_current_user(token: str = Depends(oauth2_scheme)):
+    """Service to get current user, ensure the token is valid, and user is active
+
+    Args:
+        token (str, optional): required by OAuth2PasswordBearer. Defaults to Depends(oauth2_scheme).
+
+    Raises:
+        credentials_exception: HTTP_401, username is None or token is invalid
+        HTTPException: HTTP_400, user is inactive
+
+    Returns:
+        _type_: _description_
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+
+    user = r.get(token_data.username)
+
+    if user is None:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return token_data.username

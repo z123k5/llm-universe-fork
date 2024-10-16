@@ -128,6 +128,17 @@ async def read_users_me(current_user = Depends(get_current_user)):
     """
     return {"status": "active"}
 
+@app.post(f"/api/{API_VER}/users/register")
+async def register_user():
+    """Route to register user
+
+    Args:
+        user (_type_, optional): _description_. Defaults to Depends(get_current_user).
+
+    Returns:
+        _type_: _description_
+    """
+    return {"status": "registered"}
 
 @app.post(f"/api/{API_VER}/users/log_out")
 async def log_out(current_user = Depends(get_current_user)):
