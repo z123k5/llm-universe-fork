@@ -16,8 +16,6 @@ from pymongo.errors import ConnectionFailure
 # 分词
 import jieba
 
-#导入redis图模块
-from redisgraph import Graph
 
 # 根据时间生成随机数种子
 random.seed(datetime.datetime.now())
