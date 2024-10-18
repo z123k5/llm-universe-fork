@@ -58,11 +58,11 @@ avatar | string (图像路径)
 
 4. 发起订单，当用户行程计划的航班数据一切准备就绪时，由用户发起确认订单请求
 (POST) http://127.0.0.1:8082/api/v1/appendOrder
-** 查询参数表:
+** Arguments:
 userId | number (用户编号) | 必填
 flightsId | Array[flightId] (航班编号数组) | 必填
 
-** 返回值 (JSON object):
+** Returns (JSON object):
 status | "true" 如果成功 "false" 如果失败
 msg | string (订单结果描述)
 price | number (订单价格)
@@ -70,3 +70,4 @@ orderId | string (订单编号)
 imgUrl | string (支付付款码地址)
 msg | string (订单描述)
 
+** Pay attention to the `flightsId`, it's the flightsId on the context you know

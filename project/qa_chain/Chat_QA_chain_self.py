@@ -88,6 +88,7 @@ class Chat_QA_chain_self:
 
         # 深度理解链
         deepkTemplateStr = """Given the chat history below, please answer the question in short as possible, using the question's native language to answer:
+Pay attention to the flightId, orderId... in the following chat history, and use them in your answer.
 ** Chat history:
 {chat_history}
 
