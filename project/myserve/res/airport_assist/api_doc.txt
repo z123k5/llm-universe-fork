@@ -1,46 +1,72 @@
 API 文档:
-目标: http://127.0.0.1:8081
+目标: http://127.0.0.1:8082
 
-1. 查询菜单，需要查看本店的所有菜品时调用
-(GET) http://127.0.0.1:8081/api/v1/menu
-** 查询参数表:
-None
-** 返回值 (JSON object):
-dishes | array[dish] (菜品对象)
-** 在 dishes 的每个元素中包含下列值
-dishId | string (菜品编号)
-name | string (菜品名称)
-price | string (价格)
+1. 查询站名，由地名模糊查找站名，或者一次查询所有站名
+(GET) http://127.0.0.1:8082/api/v1/queryStation
+** Arguments
+station | string | 可选参数
+
+** Returns (JSON Array):
+stations | Array[station]
+** Each element include in `stations` as:
+stationName | string (站名)
+stationCode | string (英文代码，三个字母)
+
+
+2. 查询机票，从服务台获取指定日期区间、出发地、目的地，返回查询的机票信息（航班票价、是否支持学生票、剩余票数）
+(GET) http://127.0.0.1:8082/api/v1/queryFlight
+** Arguments:
+date | Date(日期格式"2020-10-1") | 可选参数
+from | string (始发地，模糊查找) | 可选参数
+to | string (目的地，模糊查找) | 可选参数
+
+** Returns (JSON Array):
+flights | Array[flight] (航班对象数组)
+** Each element include in `flights` as:
+flightId | number (航班编号，请务必记住航班对应的该编号，用于后面提交订单时使用)
+flightCode | string (航班编号，2位公司英文编号+4位数字序列号)
+flightName | string (班次名称)
+supportStudent | Boolean (是否支持学生票)
+price | number (价格)
+from | string (始发地，模糊查找)
+to | string (目的地，模糊查找)
 info | string (描述)
+num | number (剩余票数)
 avatar | string (图像路径)
 
-2. 查询空闲座位数量
-(GET) http://127.0.0.1:8081/api/v1/querySit
-** 查询参数表:
-None
-** 返回值 (JSON object):
-num | string (空闲座位数量)
-msg | string (结果描述)
 
-3. 发起订单
-(POST) http://127.0.0.1:8081/api/v1/appendOrder
+3. 制定行程计划，用户想要想要随意从一个地方到达另一个地方时使用，从服务台获取明确始发地、目的地、时间约束的一趟最优行程推荐
+(GET) http://127.0.0.1:8082/api/v1/plan
+** Arguments:
+date | Date(日期格式"2020-10-1") | 可选参数
+from | string | 可选参数（from和to不能只填一个，不然只根据日期查询）
+to | string | 可选参数（from和to不能只填一个，不然只根据日期查询）
+
+** Returns (JSON Array):
+flights | Array[flight] (航班对象数组)
+** Each element include in `flights` are sequential:
+flightId | number (航班编号，请务必记住航班对应的该编号，用于后面提交订单时使用)
+flightCode | string (航班编号，2位公司英文编号+4位数字序列号)
+price | number (价格)
+from | string (始发地，模糊查找)
+to | string (目的地，模糊查找)
+num | number (剩余票数)
+avatar | string (图像路径)
+
+
+
+
+4. 发起订单，当用户行程计划的航班数据一切准备就绪时，由用户发起确认订单请求
+(POST) http://127.0.0.1:8082/api/v1/appendOrder
 ** 查询参数表:
-userId | int (用户编号) | 必须
-dishId | array[string] (不是菜品名称，是菜品的编号)数组 | 必须
-sitNum | int (订座位数量，正整数) | 可选（大于0为堂食，不填时为线上订餐）
+userId | number (用户编号) | 必填
+flightsId | Array[flightId] (航班编号数组) | 必填
+
 ** 返回值 (JSON object):
 status | "true" 如果成功 "false" 如果失败
 msg | string (订单结果描述)
-orderId | string(订单编号) (特别注意记录这个用户编号对应的订单编号，有利于你发起支付订单时使用)
-
-
-4. 结账、完成订单、微信、支付宝、扫码支付方式
-(GET) http://127.0.0.1:8081/api/v1/payOrder
-** 查询参数表
-userId | 用户编号
-orderId | 订单编号
-** 返回值 (string)
-status | "true" 如果成功 "false" 如果失败
-imgUrl | string | 必须
+price | number (订单价格)
+orderId | string (订单编号)
+imgUrl | string (支付付款码地址)
 msg | string (订单描述)
 
