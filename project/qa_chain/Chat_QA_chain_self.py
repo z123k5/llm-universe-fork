@@ -87,7 +87,7 @@ class Chat_QA_chain_self:
         llm = model_to_llm(self.model, temperature, self.appid, self.api_key, self.Spark_api_secret,self.Wenxin_secret_key)
 
         # 深度理解链
-        deepkTemplateStr = """Given the chat history below, please answer the question in short as possible:
+        deepkTemplateStr = """Given the chat history below, please answer the question in short as possible, using the question's native language to answer:
 ** Chat history:
 {chat_history}
 
