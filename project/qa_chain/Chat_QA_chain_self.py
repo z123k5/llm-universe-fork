@@ -1,4 +1,5 @@
 # from langchain.vectorstores import Chroma
+import datetime
 from bson import ObjectId
 from langchain.chains import ConversationalRetrievalChain
 # from langchain.chat_models import ChatOpenAI
@@ -95,7 +96,7 @@ Pay attention to the flightId, orderId... in the following chat history, and use
 ** User Question:
 {question}
 
-** What is the purpose of the user now?
+** Overally, include the Chat history and question, what are all the exact needs of user at present?
 Your Answer:
 """
         deepkTemplate = PromptTemplate(template=deepkTemplateStr, input_variables=[
@@ -142,7 +143,10 @@ Your Answer:
 
         # Run
         result = overall_chain({
-            "context": " ",
+            "context": 
+            f"""今天的日期时间是：{str(datetime.datetime.now())}
+userId: {kwargs.get("userId", 253)}
+""",
             "question": question,
             "chat_history": self.chat_history})
         

@@ -70,16 +70,16 @@ stations = [
 ]
 
 flightCodes = {
-    "CA" : "中国国际航空公司",
-    "MU" : "中国东方航空公司",
-    "CZ" : "中国南方航空公司",
-    "3U" : "四川航空公司",
-    "ZH" : "深圳航空公司",
-    "GS" : "甘肃航空公司",
-    "HU" : "海南航空公司",
-    "JD" : "首都航空公司",
-    "KN" : "中国联合航空公司",
-    "MF" : "厦门航空公司",
+    "CA": "中国国际航空公司",
+    "MU": "中国东方航空公司",
+    "CZ": "中国南方航空公司",
+    "3U": "四川航空公司",
+    "ZH": "深圳航空公司",
+    "GS": "甘肃航空公司",
+    "HU": "海南航空公司",
+    "JD": "首都航空公司",
+    "KN": "中国联合航空公司",
+    "MF": "厦门航空公司",
 }
 
 """ [
@@ -122,6 +122,7 @@ flights = [
 
 ]
 
+
 def stationNameAtSameCity(station1, station2):
     for i in range(len(stations)):
         if stations[i]["stationName"] == station1:
@@ -129,6 +130,7 @@ def stationNameAtSameCity(station1, station2):
                 if stations[j]["stationName"] == station2 and stations[i]["stationName"] == stations[j]["stationName"]:
                     return True
     return False
+
 
 def gen_flights():
     # 每天生成25-35个航班
@@ -142,19 +144,22 @@ def gen_flights():
         # 第day天的航班
         for i in range(days[day]):
             # 生成航班信息，随机生成
-            departTime = datetime.datetime.now() + datetime.timedelta(days=day) + datetime.timedelta(hours=random.randint(0, 23)) + datetime.timedelta(minutes=random.randint(0, 59))
-            arriveTime = departTime + datetime.timedelta(hours=random.randint(1, 5)) + datetime.timedelta(minutes=random.randint(0, 59))
+            departTime = datetime.datetime.now() + datetime.timedelta(days=day) + \
+                datetime.timedelta(hours=random.randint(
+                    0, 23)) + datetime.timedelta(minutes=random.randint(0, 59))
+            arriveTime = departTime + datetime.timedelta(hours=random.randint(
+                1, 5)) + datetime.timedelta(minutes=random.randint(0, 59))
             flightCode = random.choice(list(flightCodes.keys()))
-            from_ = random.choice(stations)
-            to_ = random.choice(stations)
-            while to_["stationName"] == from_["stationName"]:
-                to_ = random.choice(stations)
+            from_ = random.choice(range(len(stations)))
+            to_ = random.choice(range(len(stations)))
+            while to_ == from_:
+                to_ = random.choice(range(len(stations)))
             flight = {
                 "flightId": sum(days[:day]) + i,
                 "flightCode": flightCode + str(samplers[sum(days[:day]) + i]),
                 "flightName": flightCodes[flightCode],
-                "from": from_["stationName"],
-                "to": to_["stationName"],
+                "from": from_,
+                "to": to_,
                 "departTime": departTime,
                 "arriveTime": arriveTime,
                 "price": random.randint(400, 1500),
@@ -162,6 +167,7 @@ def gen_flights():
                 "supportStudent": random.choice(["true", "false"])
             }
             flights.append(flight)
+
 
 gen_flights()
 
@@ -181,12 +187,14 @@ order = []
 graph = {}
 
 # 航班邻接矩阵
-arr = np.full((len(stations) + len(flights), len(stations) + len(flights)), float("inf"))
+arr = np.full((len(stations) + len(flights),
+              len(stations) + len(flights)), float("inf"))
 # for i in range(len(stations) + len(flights)):
-    # arr.append([float("inf")] * (len(stations) + len(flights)))
+# arr.append([float("inf")] * (len(stations) + len(flights)))
 
 # 二维数组，航班最短路径下一个结点（候选三个）
-nexthop = np.full((len(stations) + len(flights), len(stations) + len(flights)), -1)
+nexthop = np.full((len(stations) + len(flights),
+                  len(stations) + len(flights)), -1)
 
 # 初始化邻接矩阵
 
@@ -195,6 +203,8 @@ nexthop = np.full((len(stations) + len(flights), len(stations) + len(flights)), 
 #     nexthop.append([-1] * len(flights))
 
 # Dijkstra算法
+
+
 def dijkstra(graph, start, end):
     def find_lowest_cost_node(costs):
         lowest_cost = float("inf")
@@ -234,6 +244,8 @@ def dijkstra(graph, start, end):
     return path
 
 # Floyd，从邻接矩阵计算最短路径
+
+
 def floyd():
     # 从 flights 初始化 邻接表
     # 每个站点 stationCode 为一个结点
@@ -252,7 +264,8 @@ def floyd():
         # 时间差 < 40分钟 值在 2.0 - 3.0 之间
         # 时间差 < 1.5小时 值在 1.0 - 1.5 之间
         # 1小时 <= 时间差 < 2小时 值为 1.0
-        # 2小时以上 值在 1.0 - 2.0 之间
+        # 2小时 <= 时间差 <= 1天 值在 1.0 - 2.0 之间
+        # 1 天  <= 时间差 <= 5天 值在 2.0 - 20.0 之间
         # 如果end早于begin，返回无穷大
         if end < begin:
             return float("inf")
@@ -263,18 +276,24 @@ def floyd():
             return 1.0 + 0.5 * (1.5 - delta) / 1.5
         elif delta < 2:
             return 1.0
+        elif delta < 24:
+            return 1.0 + 1.0 * (delta - 2.0) / 22.0
+        elif delta < 120:
+            return 2.0 + 18.0 * (delta - 24.0) / 96.0
         else:
-            return 1.0 + 1.0 * (delta - 2.0)
-
+            return float("inf")
 
     # 站点
     for i in range(len(stations)):
         for j in range(len(stations)):
             # TODO: 若城市名称相同，则权值也为0（暂时用不到）
-            if i == j: # or stationNameAtSameCity(stations[i]["stationName"], stations[j]["stationName"]):
-                arr[i,j] = 0
+            # or stationNameAtSameCity(stations[i]["stationName"], stations[j]["stationName"]):
+            if i == j:
+                arr[i, j] = 0
+                nexthop[i, j] = i
             else:
-                arr[i,j] = float("inf")
+                arr[i, j] = float("inf")
+                nexthop[i, j] = -1
     # 航班
     for i in range(len(stations), len(stations) + len(flights)):
         for j in range(len(stations), len(stations) + len(flights)):
@@ -282,39 +301,46 @@ def floyd():
             l = j - len(stations)
             if flights[k]["to"] == flights[l]["from"] and flights[k]["arriveTime"] < flights[l]["departTime"]:
                 # graph[i] = {j: (flights[l]["departTime"] - flights[k]["arriveTime"]).seconds/60 * flights[l]["price"] * connectTimeFactor(flights[k]["arriveTime"], flights[l]["departTime"])}
-                arr[i, j] = abs((flights[l]["departTime"] - flights[k]["arriveTime"]).seconds/60) * flights[l]["price"] * connectTimeFactor(flights[k]["arriveTime"], flights[l]["departTime"])
+                arr[i, j] = abs((flights[l]["departTime"] - flights[k]["arriveTime"]).seconds/60) * \
+                    flights[l]["price"] * connectTimeFactor(
+                        flights[k]["arriveTime"], flights[l]["departTime"])
+                nexthop[i, j] = i
                 # arr[i, j] = flights[l]["price"]
 
     # 站点到航班
     for i in range(len(stations)):
         for j in range(len(stations), len(stations) + len(flights)):
             l = j - len(stations)
-            if stations[i]["stationName"] == flights[l]["from"]:
+            if i == flights[l]["from"]:
                 # graph[i] = {j: (flights[l]["arriveTime"] - flights[l]["departTime"]).seconds/60 * flights[l]["price"]}
-                arr[i, j] = abs((flights[l]["arriveTime"] - flights[l]["departTime"]).seconds/60) * \
-                    flights[l]["price"] * connectTimeFactor(
-                        flights[l]["departTime"], flights[l]["arriveTime"])
+                arr[i, j] = abs((flights[l]["arriveTime"] - flights[l]["departTime"]).seconds/60) * flights[l]["price"]
+                nexthop[i, j] = i
                 # arr[i, j] = flights[l]["price"]
     # 航班到站点
     for i in range(len(stations), len(stations) + len(flights)):
         for j in range(len(stations)):
             k = i - len(stations)
-            if flights[k]["to"] == stations[j]["stationName"]:
+            if flights[k]["to"] == j:
                 # graph[i] = {j: 0}
-                arr[i,j] = 0
+                arr[i, j] = 0
+                nexthop[i, j] = i
 
     temp = []
     # Floyd算法
-    for k in range(len(flights)):   # 中间结点
+    for k in range(len(stations) + len(flights)):   # 中间结点
         # if (k % 10 == 0):
-        print("Floyding: {} / {}".format(k, len(flights)))
+        print("Floyding: {} / {}".format(k, len(stations) + len(flights)))
         for i in range(len(stations) + len(flights)):   # 起始结点
             for j in range(len(stations) + len(flights)):   # 终止结点
-                if arr[i,j] > arr[i,k] + arr[k,j]:
-                    arr[i,j] = arr[i,k] + arr[k,j]
+                if i >= len(stations) and j >= len(stations) and k < len(stations):
+                    if(flights[i-len(stations)]["arriveTime"] > flights[j-len(stations)]["departTime"]):
+                        continue
+                if arr[i, j] > arr[i, k] + arr[k, j]:
+                    arr[i, j] = arr[i, k] + arr[k, j]
                     # nexthop 存储三个候选结点，滚动更新
                     # temp = nexthop[i][j]
-                    nexthop[i,j] = k #[k, temp[0], temp[1]]
+                    nexthop[i, j] = k  # [k, temp[0], temp[1]]
+
 
 floyd()
 
@@ -351,7 +377,7 @@ async def query_station(request: Request):
     if not querys:
         # 返回所有地名
         return JSONResponse(jsonable_encoder(stations))
-    
+
     querys = jieba.lcut(querys)
 
     # 去除 带有 "机场"、"国际" 的元素
@@ -391,7 +417,7 @@ info | string (描述)
 num | number (剩余票数)
 avatar | string (图像路径)
     """
-    
+
     date = request.query_params.get("date")
     from_ = request.query_params.get("from")
     to = request.query_params.get("to")
@@ -410,8 +436,8 @@ avatar | string (图像路径)
 
     for i in range(len(stations)):
         for j in range(len(querys)):
-            if querys[j] and querys[j] in stations[i]["stationName"] and stations[i] not in froms:
-                froms.append(stations[i])
+            if querys[j] and querys[j] in stations[i]["stationName"] and i not in froms:
+                froms.append(i)
                 break
 
     if not to:
@@ -425,8 +451,8 @@ avatar | string (图像路径)
 
     for i in range(len(stations)):
         for j in range(len(querys)):
-            if querys[j] and querys[j] in stations[i]["stationName"] and stations[i] not in tos:
-                tos.append(stations[i])
+            if querys[j] and querys[j] in stations[i]["stationName"] and i not in tos:
+                tos.append(i)
                 break
 
     ret = []
@@ -443,30 +469,34 @@ avatar | string (图像路径)
     else:
         # TODO: 一个城市一般只有一个机场，所以只取第一个
         if len(froms):
-            from_ = froms[0].get("stationName")
+            from_ = froms[0]
         else:
             from_ = ""
         if len(tos):
-            to = tos[0].get("stationName")
+            to = tos[0]
         else:
             to = ""
         for i in range(len(flights)):
-            if (not from_ or from_ == flights[i]["from"]) and (not to or to == flights[i]["to"]):
+            if (not date or flights[i]["departTime"].strftime("%Y-%m-%d") == date) and (not from_ or from_ == flights[i]["from"]) and (not to or to == flights[i]["to"]):
                 ret.append({
                     "flightCode": flights[i]["flightCode"],
                     "flightName": flights[i]["flightName"],
                     "supportStudent": flights[i]["supportStudent"],
                     "price": flights[i]["price"],
-                    "from": flights[i]["from"],
-                    "to": flights[i]["to"],
-                    "info": "{}航班从{}飞往{}价格{}元".format(flights[i]["flightId"], flights[i]["from"], flights[i]["to"], flights[i]["price"]),
+                    "from": stations[flights[i]["from"]]["stationName"],
+                    "to": stations[flights[i]["to"]]["stationName"],
+                    "info": "{}航班从{}飞往{}价格{}元".format(flights[i]["flightId"], stations[flights[i]["from"]]["stationName"], flights[i]["to"], flights[i]["price"]),
                     "num": flights[i]["ticketNum"],
-                    "avatar": random.choice(avartas)
+                    "avatar": random.choice(avartas),
+                    "departTime": flights[i]["departTime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "arriveTime": flights[i]["arriveTime"].strftime("%Y-%m-%d %H:%M:%S"),
                 })
-    
+
     return JSONResponse(jsonable_encoder(ret))
-    
+
 # 制定行程计划
+
+
 @app.api_route("/api/v1/plan", methods=["GET", "POST", "OPTIONS"])
 async def plan(request: Request):
     """Route to plan
@@ -496,9 +526,9 @@ avatar | string (图像路径)
     date = request.query_params.get("date")
     from_ = request.query_params.get("from")
     to = request.query_params.get("to")
-    
-    if not date:
-        date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    # if not date:
+    #     date = datetime.datetime.now().strftime("%Y-%m-%d")
 
     if not from_ or not to:
         return JSONResponse(jsonable_encoder({"status": "false", "msg": "查询失败，需要完整的始发地和目的地参数"}))
@@ -515,8 +545,8 @@ avatar | string (图像路径)
 
     for i in range(len(stations)):
         for j in range(len(querys)):
-            if querys[j] and querys[j] in stations[i]["stationName"] and stations[i] not in froms:
-                froms.append(stations[i])
+            if querys[j] and querys[j] in stations[i]["stationName"] and i not in froms:
+                froms.append(i)
                 break
 
     querys = jieba.lcut(to)
@@ -527,52 +557,106 @@ avatar | string (图像路径)
 
     for i in range(len(stations)):
         for j in range(len(querys)):
-            if querys[j] and querys[j] in stations[i]["stationName"] and stations[i] not in tos:
-                tos.append(stations[i])
+            if querys[j] and querys[j] in stations[i]["stationName"] and i not in tos:
+                tos.append(i)
                 break
 
     if len(froms) == 0 or len(tos) == 0:
         return JSONResponse(jsonable_encoder({"status": "false", "msg": "查询失败，始发地和目的地为空"}))
-    
+
     # TODO: 一个城市一般只有一个机场，所以只取第一个
 
-    from_ = froms[0].get("stationName")
-    to = tos[0].get("stationName")
-    fromi = stations.index(froms[0])
-    toi = stations.index(tos[0])
+    from_ = froms[0]
+    to = tos[0]
+    fromStationIndex = froms[0]
+    toStationIndex = tos[0]
 
+    # 每个站点有多个出发航班可选，每个出发航班可以间接到达目的地
+    # 先把所有出发航班找出来
+    fromFlightIndexes = [i + len(stations) for i in range(len(flights)) if flights[i]["from"]
+                         == from_ and (not date or flights[i]["departTime"].strftime("%Y-%m-%d") == date)]
 
     # 使用 arr 和 nexthop 数组 查询最优路径
     # arr 是 i, j 全局最优价格的 邻接矩阵，nexthop 是从 i 到 j 下一个结点的最优站点，包含三个候选
     # ret: [{flights: [flight1, flight2, ...]}, cost: 价格]
     ret = []
-    path = []
-    # 
-    node = toi
-    path.append(stations[node])
 
     cost = 0
-    # nexthop[i,j]存储i到j的最后一个最优点，所以从to开始找
-    while node != fromi:
-        nextnode = nexthop[fromi, node]
-        if nextnode == -1 or toi == node and flights[nextnode - len(stations)]["to"] != stations[node]["stationName"]:
-            break
-        if nextnode < len(stations):
-            path.insert(0, stations[nextnode])
-        else:
-            path.insert(0, flights[nextnode - len(stations)])
-            cost += flights[nextnode - len(stations)]['price']
-        node = nextnode
-        
-    
-    if path[0] and ("stationName" in path[0] and (path[0]["stationName"] == fromi)):
-        ret.append({"flights": path, "cost": cost})
-    elif path[0] and ("from" in path[0] and (path[0]["from"] == from_)):
-        ret.append({"flights": path, "cost": cost})
+    totalPrice = 0
+    path = []
+    # 对fromFlightIndexes中的每个航班开始，在nexthop最优链中寻找到toi的最优路径，cost初始化为fromFlightIndexes第一个航班的价格，每条最优路线记录一次cost并将数据append到ret，最后在ret中根据cost排序
+    for fromFlightIndex in fromFlightIndexes:
+        cost = 0
+        totalPrice = 0
+        path = []
+        path.append(stations[toStationIndex])
 
-    return JSONResponse(jsonable_encoder(ret))
+        # 以node作为终点，向前遍历路径
+        node = toStationIndex
+        while node != fromFlightIndex:
+            nextnode = nexthop[fromFlightIndex, node]
+            # 路径中断，结束
+            if nextnode == -1:
+                break
+            
+            # 找到始发地，结束
+            if nextnode == fromFlightIndex:
+                flight = flights[fromFlightIndex - len(stations)]
+                path.insert(0, {
+                    "flightName": flight["flightName"],
+                    "flightCode": flight["flightCode"],
+                    "from": stations[flight["from"]]["stationName"],
+                    "to": stations[flight["to"]]["stationName"],
+                    "departTime": flight["departTime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "arriveTime": flight["arriveTime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "supportStudent": flight["supportStudent"],
+                    "price": flight["price"],
+                })
+                path.insert(0, stations[fromStationIndex])
+                cost += arr[fromStationIndex, fromFlightIndex]
+                totalPrice += flights[fromFlightIndex - len(stations)]['price']
+                break
 
+            if nextnode < len(stations):
+                # 找到一个站点，插入站点
+                if node < len(stations):
+                    break
+                if flights[node - len(stations)]["from"] != nextnode:
+                    break
+                # path.insert(0, stations[nextnode])
+            else:
+                # 找到一个航班，插入航班
+                if node < len(stations):
+                    if flights[nextnode - len(stations)]["to"] != node:
+                        break
+                elif flights[nextnode - len(stations)]["to"] != node - len(stations):
+                    break
+                flight = flights[nextnode - len(stations)]
+                path.insert(0, {
+                    "flightName": flight["flightName"],
+                    "flightCode": flight["flightCode"],
+                    "from": stations[flight["from"]]["stationName"],
+                    "to": stations[flight["to"]]["stationName"],
+                    "departTime": flight["departTime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "arriveTime": flight["arriveTime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "supportStudent": flight["supportStudent"],
+                    "price": flight["price"],
+                })
+                # cost += flights[nextnode - len(stations)]['price']
+                totalPrice += flights[nextnode - len(stations)]['price']
+                if node >= len(stations):
+                    cost += arr[flights[nextnode - len(stations)]["from"], flights[nextnode - len(stations)]["to"]]
+            node = nextnode
+
+        if path[0] and ("stationName" in path[0] and (path[0]["stationName"] == stations[from_]["stationName"])):
+            ret.append({"flights": path, "cost": cost, "totalPrice": totalPrice}) 
+
+    # ret根据cost排序
+    ret = sorted(ret, key=lambda x: x["cost"])
+    return JSONResponse(jsonable_encoder(ret[:2]))
 # 提交订单
+
+
 @app.api_route("/api/v1/appendOrder", methods=["GET", "POST", "OPTIONS"])
 async def append_order(request: Request):
     """Route to append order
@@ -582,7 +666,7 @@ async def append_order(request: Request):
 
     Returns:
         _type_: _description_
-    
+
 ** 查询参数表:
 userId | number (用户编号) | 必填
 flightsId | Array[flightId] (航班编号数组) | 必填
@@ -601,19 +685,19 @@ msg | string (订单描述)
 
     if not userId or not flightsId:
         return JSONResponse(jsonable_encoder({"status": "false", "msg": "提交订单失败，需要用户Id、航班Id参数"}))
-    
+
     userId = ast.literal_eval(userId)
     flightsId = ast.literal_eval(flightsId)
 
     if not isinstance(flightsId, list) or not isinstance(userId, int):
         return JSONResponse(jsonable_encoder({"status": "false", "msg": "提交订单失败，参数类型错误"}))
-    
+
     if not isinstance(flightsId, list):
         flightsId = [flightsId,]
 
     if len(flightsId) == 0:
         return JSONResponse(jsonable_encoder({"status": "false", "msg": "提交订单失败，航班为空"}))
-    
+
     price = 0
     for i in range(len(flightsId)):
         # 从flights中查找flightId
@@ -623,7 +707,8 @@ msg | string (订单描述)
 
     orderId = random.randint(100000, 999999)
     imgUrl = "https://www.baidu.com"
-    order.append({"userId": userId, "orderId": orderId, "sitNum": sitNum, "flights": flights})
+    order.append({"userId": userId, "orderId": orderId,
+                 "sitNum": sitNum, "flights": flights})
     return JSONResponse(jsonable_encoder({"status": "true", "msg": "提交订单成功", "price": price, "orderId": orderId, "imgUrl": imgUrl}))
 
 
@@ -631,12 +716,12 @@ msg | string (订单描述)
 @app.api_route("/api/v1/get_desk_form")
 async def get_desk_form(request: Request):
     """ Route to retrieve order information 
-    
+
     Returns:
         [
             {
                 orderId: 订单编号,
-                
+
                 items: [
                     name: 航班名称,
                     desc: 航班描述,
@@ -661,7 +746,7 @@ async def get_desk_form(request: Request):
             for j in range(len(order[i]["flights"])):
                 flight = flights[order[i]["flights"][j]-1]
                 items.append(
-                    {"name": flight["flightCode"], "desc": "航空公司: " + flight["flightName"] + "，方向:从" + flight["from"] + " 到 " + flight["to"] + ", 时间: " + flight["departTime"] + ", 票价: " + flight["price"], "image": random.choice(avartas)})
+                    {"name": flight["flightCode"], "desc": "航空公司: " + flight["flightName"] + "，方向:从" + stations[flight["from"]]["stationName"] + " 到 " + stations[flight["to"]]["stationName"] + ", 时间: " + flight["departTime"] + ", 票价: " + flight["price"], "image": random.choice(avartas)})
             ret.append({"orderId": order[i]["orderId"], "items": items})
     return JSONResponse(jsonable_encoder(ret))
 

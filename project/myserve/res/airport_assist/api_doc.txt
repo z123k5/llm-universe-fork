@@ -13,7 +13,7 @@ stationName | string (站名)
 stationCode | string (英文代码，三个字母)
 
 
-2. 查询机票，从服务台获取指定日期区间、出发地、目的地，返回查询的机票信息（航班票价、是否支持学生票、剩余票数）
+2. 查询直达，从用户问题中获取始发地from、目的地to、预期出发时间（可选），发起查询直达航班请求。
 (GET) http://127.0.0.1:8082/api/v1/queryFlight
 ** Arguments:
 date | Date(日期格式"2020-10-1") | 可选参数
@@ -35,7 +35,7 @@ num | number (剩余票数)
 avatar | string (图像路径)
 
 
-3. 制定行程计划，用户想要想要随意从一个地方到达另一个地方时使用，从服务台获取明确始发地、目的地、时间约束的一趟最优行程推荐
+3. 制定行程计划：从历史对话中得到始发地from和目的地to，还有预期出发时间date，然后发起查询航线请求。
 (GET) http://127.0.0.1:8082/api/v1/plan
 ** Arguments:
 date | Date(日期格式"2020-10-1") | 可选参数
@@ -55,8 +55,7 @@ avatar | string (图像路径)
 
 
 
-
-4. 发起订单，当用户行程计划的航班数据一切准备就绪时，由用户发起确认订单请求
+4. 发起订单：从对话历史中筛选出用户预期的flightId，组合成一个数组，然后与userId一起发起订票请求。
 (POST) http://127.0.0.1:8082/api/v1/appendOrder
 ** Arguments:
 userId | number (用户编号) | 必填
@@ -69,5 +68,3 @@ price | number (订单价格)
 orderId | string (订单编号)
 imgUrl | string (支付付款码地址)
 msg | string (订单描述)
-
-** Pay attention to the `flightsId`, it's the flightsId on the context you know
